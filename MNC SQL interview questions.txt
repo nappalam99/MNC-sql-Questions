@@ -1,0 +1,147 @@
+1. Explain the order of Execution of SQL Query.
+-> 
+FROM: Specifies the tables from which data will be retrieved.
+JOIN: Combines data from multiple tables based on specified conditions.
+WHERE: Filters rows based on specified conditions.
+GROUP BY: Groups rows that have the same values into summary rows.
+HAVING: Filters grouped rows based on specified conditions.
+SELECT: Retrieves data from the database.
+DISTINCT: Eliminates duplicate rows from the result set.
+ORDER BY: Sorts the result set based on specified column(s).
+LIMIT/OFFSET: Limits the number of rows returned and optionally specifies a starting point for returning rows.
+
+2. Provide use case of each of function rank, dense_rank,row_number.
+->
+Rank :- whenever we use rank function, it will skip the ranking number (1,2,3...) but not the record(row) number if any duplicate values occure in that column.
+Use Case: In a competition, you want to rank participants based on their scores, but if there's a tie in scores, you want to assign the same rank to those participants and leave a gap before the next rank.
+Example: Suppose you have scores as follows: 90, 85, 80, 80, 75. The ranks would be: 1, 2, 3, 3, 5.
+
+dense_rank :- whenever we use dense_rank function,it will skip record(row) number but not the ranking number if any duplicate is occure values in that column.
+use case :- we use it when we need to find out 2nd ,nth highest salary.
+
+Row_number:-whenver we use Row_number , it will gives unique ranking number to each record whether their is any duplicate or not.
+use Case :- when we want to assign unique ranking number to each record.
+
+3. Write a query to find out Cumulative sum.
+->
+note:- for table you can simply go to chat GPt and aks to make table.
+
+select Emp.*, 
+sum(salary)over(order by empid) as cusum
+from Emp
+
+4.Find most selling product by sales?
+->
+select productname, sum(saleamount) as highest_sales
+from sales
+group by productname
+order by highest_sales desc
+limit 1 
+
+5. find out the highest salary of employees
+->
+select salary
+from Emp
+order by salary desc
+limit 1
+
+6.find out the 2nd highest salary ?
+->
+select salary
+from sales
+order by salary desc 
+limit 1 offset 1
+
+7. difference between union and union all
+->
+union and union all both are set operator 
+union :- union will fetch out the distinct(unique) record from both the table
+union all:- union all will fetch out all the records from both the table including duplicate.
+
+8.Write a query to find all those record where the transaction value is greater than previous transaction.
+
+->
+select * from (select transactions.*,
+lag(transactionvalue)over(partition by customerid order by transactiondate)as lag_tranvalues
+from transactions) as t
+where lag_tranvalues > transactionvalue
+
+9.find out the 2nd highest salary by rank and dese_rank ?
+->
+by RANK
+
+with mycte as(select emp.*,
+rank()over(order by salary desc) as ranking_by_rank
+from Emp)
+select * from mycte
+where ranking_by_rank = 2
+
+by DENSE_RANK
+
+with mycte as(select emp.*,
+dense_rank()over(order by salary desc) as ranking_by_rank
+from Emp)
+select * from mycte
+where ranking_by_rank = 2
+
+10. Write a query to find the running difference
+->
+select 
+sales.*,
+lag(saleamount,1,0)over(order by saleid),
+(saleamount-
+lag(saleamount,1,0)over(order by saleid)) as running_difference
+from sales
+
+11. Write a query to display year on year and month on month  growth
+->
+YOY growth
+-----------
+with mycte as
+(select 
+extract(year from sale_date) as years,
+sum(value) as sum_val
+from sales_data
+group by years
+order by years)
+select years,
+sum_val,
+(sum_val -
+lag(sum_val,1)over(order by years)) YOY
+from mycte
+
+MOM growth
+----------
+with mycte as (select 
+extract(month from sale_date) as months,
+			   sum(value) as sum_val
+from sales_data
+group by months
+order by months)
+
+select months,
+sum_val,
+(sum_val -
+lag(sum_val,1)over(order by months)) MoM
+from mycte
+
+12. Write a query to find running  average of Daily  sign-ups
+->select sales.*,
+avg(sigh_ups)over(order by saledate ROWS BETWEEN UNBOUNDED PRECEDING and Current row)
+from sales
+
+13. what are the benifit of using CTE?
+->
+CTE mean "COMMON TABLE EXPRESSION" . we define the query inside the with claues and within tuple() brackets we define our query
+then this query act as an temprory table. we can create  multiple CTE queries with single "with" statment.
+it help to solve complex queries in simpler manner
+
+
+
+
+
+
+
+
+
+
